@@ -1,0 +1,551 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Asistente de Cerámica</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --clay:       #c4713a;
+      --clay-dark:  #a05525;
+      --clay-pale:  #f5e6d8;
+      --clay-mid:   #e8c4a0;
+      --earth:      #6b4226;
+      --cream:      #fdf6ef;
+      --smoke:      #7a8c8e;
+      --ink:        #2c2117;
+      --green:      #2e7d32;
+      --green-pale: #e8f5e9;
+      --blue:       #1565c0;
+      --blue-pale:  #e3f2fd;
+      --purple:     #6a1b9a;
+      --purple-pale:#f3e5f5;
+      --teal:       #00695c;
+      --teal-pale:  #e0f2f1;
+      --radius:     14px;
+      --shadow:     0 4px 18px rgba(100,60,20,.15);
+    }
+
+    body {
+      font-family: 'Segoe UI', system-ui, sans-serif;
+      background: var(--cream);
+      color: var(--ink);
+      min-height: 100dvh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 24px 16px 48px;
+      gap: 20px;
+    }
+
+    /* ── Header ── */
+    header { text-align: center; }
+    .logo  { font-size: 2.4rem; margin-bottom: 4px; }
+    h1     { font-size: 1.4rem; font-weight: 700; color: var(--clay-dark); }
+    h1 span { color: var(--clay); }
+    .subtitle { font-size: .82rem; color: var(--smoke); margin-top: 3px; }
+
+    /* ── Cards ── */
+    .card {
+      background: #fff;
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      width: 100%;
+      max-width: 560px;
+      padding: 24px 20px;
+      display: flex;
+      flex-direction: column;
+      gap: 18px;
+    }
+    .card-title {
+      font-size: .78rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: .09em;
+      color: var(--smoke);
+      border-bottom: 1px solid var(--clay-pale);
+      padding-bottom: 8px;
+    }
+
+    /* ── Status badge ── */
+    .status-bar {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 9px 16px;
+      border-radius: 50px;
+      background: var(--clay-pale);
+      font-size: .87rem;
+      font-weight: 600;
+      color: var(--earth);
+      transition: background .3s, color .3s;
+    }
+    .status-dot {
+      width: 10px; height: 10px;
+      border-radius: 50%;
+      background: var(--smoke);
+      flex-shrink: 0;
+      transition: background .3s;
+    }
+    .status-bar.listening  { background: #fff0e6; color: #c04000; }
+    .status-bar.listening  .status-dot { background: #e05010; animation: pulse 1s infinite; }
+    .status-bar.thinking   { background: var(--blue-pale); color: var(--blue); }
+    .status-bar.thinking   .status-dot { background: var(--blue); animation: spin-dot 1s linear infinite; }
+    .status-bar.speaking   { background: var(--green-pale); color: var(--green); }
+    .status-bar.speaking   .status-dot { background: var(--green); animation: pulse .7s infinite; }
+
+    @keyframes pulse    { 0%,100%{transform:scale(1);opacity:1} 50%{transform:scale(1.45);opacity:.6} }
+    @keyframes spin-dot { 0%{transform:rotate(0deg)scale(1)} 50%{transform:rotate(180deg)scale(1.3)} 100%{transform:rotate(360deg)scale(1)} }
+
+    /* ── Chat bubbles ── */
+    .bubble-area { display:flex; flex-direction:column; gap:10px; min-height:90px; }
+    .bubble {
+      border-radius: var(--radius);
+      padding: 11px 15px;
+      font-size: .93rem;
+      line-height: 1.55;
+      max-width: 92%;
+      animation: slide-in .2s ease;
+    }
+    .bubble.user        { align-self:flex-end;  background:var(--clay-pale); color:var(--earth); border-bottom-right-radius:4px; }
+    .bubble.assistant   { align-self:flex-start; background:var(--clay); color:#fff; border-bottom-left-radius:4px; }
+    .bubble.error       { background:#ffeaea; color:#b00; align-self:flex-start; }
+    .bubble.placeholder { background:var(--clay-pale); color:var(--smoke); font-style:italic; align-self:center; text-align:center; max-width:100%; }
+    @keyframes slide-in { from{opacity:0;transform:translateY(6px)} to{opacity:1;transform:translateY(0)} }
+
+    /* ── Mic button ── */
+    .mic-wrap { display:flex; justify-content:center; align-items:center; }
+    .mic-btn {
+      width:84px; height:84px;
+      border-radius:50%;
+      border:none;
+      background:var(--clay);
+      color:#fff;
+      font-size:1.9rem;
+      cursor:pointer;
+      box-shadow:0 6px 20px rgba(196,113,58,.45);
+      transition:transform .12s, background .2s, box-shadow .2s;
+      display:flex; align-items:center; justify-content:center;
+      user-select:none; -webkit-user-select:none; touch-action:none;
+    }
+    .mic-btn:hover  { background:var(--clay-dark); }
+    .mic-btn.active { transform:scale(1.12); background:#d94010; box-shadow:0 0 0 14px rgba(217,64,16,.18); }
+    .mic-btn:disabled { background:var(--clay-mid); cursor:not-allowed; box-shadow:none; }
+    .mic-hint { text-align:center; font-size:.76rem; color:var(--smoke); margin-top:-8px; }
+
+    /* ── Quick questions ── */
+    .section-label {
+      font-size:.78rem; font-weight:700; text-transform:uppercase;
+      letter-spacing:.08em; color:var(--smoke); margin-bottom:8px;
+    }
+    .chip-grid { display:flex; flex-wrap:wrap; gap:7px; }
+    .chip {
+      border:1.5px solid var(--clay-mid);
+      background:var(--clay-pale);
+      color:var(--earth);
+      border-radius:50px;
+      padding:6px 13px;
+      font-size:.82rem;
+      cursor:pointer;
+      transition:background .15s, border-color .15s, transform .1s;
+    }
+    .chip:hover   { background:var(--clay-mid); border-color:var(--clay); transform:translateY(-1px); }
+    .chip:disabled { opacity:.45; cursor:not-allowed; transform:none; }
+
+    /* ── No speech warning ── */
+    .no-speech-warn {
+      display:none;
+      background:#fff8e1; border:1px solid #f0c040;
+      border-radius:8px; padding:9px 13px;
+      font-size:.81rem; color:#7a5000;
+    }
+    .no-speech-warn.visible { display:block; }
+
+    /* ── Divider ── */
+    .divider {
+      width:100%; max-width:560px;
+      display:flex; align-items:center; gap:12px;
+      color:var(--smoke); font-size:.78rem; font-weight:600;
+      text-transform:uppercase; letter-spacing:.08em;
+    }
+    .divider::before, .divider::after {
+      content:''; flex:1; height:1px; background:var(--clay-mid);
+    }
+
+    /* ── Soundboard ── */
+    .soundboard { gap:16px; }
+
+    .sb-group { display:flex; flex-direction:column; gap:8px; }
+    .sb-group-label {
+      font-size:.76rem; font-weight:700; text-transform:uppercase;
+      letter-spacing:.08em; display:flex; align-items:center; gap:6px;
+    }
+
+    .sb-grid { display:flex; flex-wrap:wrap; gap:7px; }
+
+    .sb-btn {
+      border:none;
+      border-radius:10px;
+      padding:9px 14px;
+      font-size:.84rem;
+      cursor:pointer;
+      transition:transform .1s, filter .15s;
+      text-align:left;
+      line-height:1.35;
+      font-family:inherit;
+    }
+    .sb-btn:hover  { transform:translateY(-2px); filter:brightness(.93); }
+    .sb-btn:active { transform:scale(.97); }
+    .sb-btn.playing { outline:2px solid currentColor; outline-offset:2px; }
+
+    /* Color themes per group */
+    .sb-green   { background:var(--green-pale);  color:var(--green); }
+    .sb-blue    { background:var(--blue-pale);   color:var(--blue);  }
+    .sb-purple  { background:var(--purple-pale); color:var(--purple);}
+    .sb-teal    { background:var(--teal-pale);   color:var(--teal);  }
+    .sb-clay    { background:var(--clay-pale);   color:var(--earth); }
+    .sb-orange  { background:#fff3e0;            color:#e65100;      }
+  </style>
+</head>
+<body>
+
+<header>
+  <div class="logo">🏺</div>
+  <h1>Asistente de <span>Cerámica</span></h1>
+  <p class="subtitle">Para alumnos y profesora</p>
+</header>
+
+<!-- ═══ STUDENT Q&A CARD ═══ -->
+<div class="card">
+  <div class="card-title">🎙️ Preguntas de alumnos</div>
+
+  <div class="status-bar" id="statusBar" role="status" aria-live="polite">
+    <div class="status-dot"></div>
+    <span id="statusText">Listo para escucharte</span>
+  </div>
+
+  <div class="bubble-area" id="bubbleArea" aria-live="polite">
+    <div class="bubble placeholder" id="placeholder">
+      Mantené apretado el micrófono y hacé tu pregunta 🎙️
+    </div>
+  </div>
+
+  <div class="no-speech-warn" id="noSpeechWarn">
+    ⚠️ No se detectó voz. Asegurate de hablar cerca del micrófono.
+  </div>
+
+  <div class="mic-wrap">
+    <button class="mic-btn" id="micBtn"
+      aria-label="Mantener presionado para hablar"
+      title="Mantener presionado para hablar">🎙️</button>
+  </div>
+  <p class="mic-hint">Mantené presionado para hablar</p>
+
+  <div>
+    <div class="section-label">Preguntas frecuentes</div>
+    <div class="chip-grid" id="quickGrid">
+      <button class="chip" data-q="¿Me podés dar arcilla?">¿Me das arcilla?</button>
+      <button class="chip" data-q="¿Usamos engobe hoy?">¿Usamos engobe?</button>
+      <button class="chip" data-q="No sé qué hacer, dame una idea">No sé qué hacer</button>
+      <button class="chip" data-q="¿Cómo hago un bowl o una taza?">¿Cómo hago un bowl?</button>
+      <button class="chip" data-q="¿Cómo hago una caja o algo cuadrado con planchas?">¿Cómo hago algo cuadrado?</button>
+      <button class="chip" data-q="¿Cómo hago un plato?">¿Cómo hago un plato?</button>
+      <button class="chip" data-q="¿Mis piezas ya están listas del horno?">¿Mis piezas están listas?</button>
+      <button class="chip" data-q="¿Me pasás la tarjeta?">¿Me pasás la tarjeta?</button>
+      <button class="chip" data-q="¿Me pasás la esponja?">¿Me pasás la esponja?</button>
+      <button class="chip" data-q="¿Me pasás la tabla?">¿Me pasás la tabla?</button>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ TEACHER SOUNDBOARD CARD ═══ -->
+<div class="divider">Panel de la profesora</div>
+
+<div class="card soundboard">
+  <div class="card-title">🔊 Frases rápidas</div>
+
+  <!-- Fin de clase -->
+  <div class="sb-group">
+    <div class="sb-group-label sb-orange">🕐 Fin de clase</div>
+    <div class="sb-grid">
+      <button class="sb-btn sb-orange" data-say="Bueno, vamos terminando las piezas que ya termina la clase.">Vamos terminando</button>
+      <button class="sb-btn sb-orange" data-say="Cinco minutos más y guardamos todo.">5 minutos más</button>
+      <button class="sb-btn sb-orange" data-say="¡Se acabó la clase! Pongan las piezas en el estante con cuidado.">¡Se acabó la clase!</button>
+      <button class="sb-btn sb-orange" data-say="Empezamos en dos minutos, vayan acomodándose.">Empezamos en 2 min</button>
+      <button class="sb-btn sb-orange" data-say="Mañana seguimos con esto, guardá tu pieza en el estante.">Mañana seguimos</button>
+      <button class="sb-btn sb-orange" data-say="Guardá la arcilla sobrante en la bolsa bien cerrada.">Guardá la arcilla</button>
+      <button class="sb-btn sb-orange" data-say="Limpiá la mesa antes de irte, por favor.">Limpiá la mesa</button>
+      <button class="sb-btn sb-orange" data-say="Pongan las piezas en el estante con cuidado, no las apilen.">Al estante con cuidado</button>
+    </div>
+  </div>
+
+  <!-- Herramientas -->
+  <div class="sb-group">
+    <div class="sb-group-label sb-clay">🧰 Herramientas y materiales</div>
+    <div class="sb-grid">
+      <button class="sb-btn sb-clay" data-say="Ya te lo traigo.">Ya te lo traigo</button>
+      <button class="sb-btn sb-clay" data-say="Ya te la traigo.">Ya te la traigo</button>
+      <button class="sb-btn sb-clay" data-say="Ya te lo paso, dame un segundo.">Ya te lo paso</button>
+      <button class="sb-btn sb-clay" data-say="Ahora lo busco.">Ahora lo busco</button>
+      <button class="sb-btn sb-clay" data-say="Dame un segundo que te lo busco.">Dame un segundo</button>
+      <button class="sb-btn sb-clay" data-say="Esperame un segundito.">Esperame un segundo</button>
+      <button class="sb-btn sb-clay" data-say="No lo encuentro, ¿lo viste en algún lado?">¿Lo viste en algún lado?</button>
+      <button class="sb-btn sb-clay" data-say="Eso no está en el taller, lo traemos la próxima.">No está en el taller</button>
+    </div>
+  </div>
+
+  <!-- Respuestas rápidas -->
+  <div class="sb-group">
+    <div class="sb-group-label sb-blue">💬 Respuestas rápidas</div>
+    <div class="sb-grid">
+      <button class="sb-btn sb-blue" data-say="Ya voy.">Ya voy</button>
+      <button class="sb-btn sb-blue" data-say="Un momento.">Un momento</button>
+      <button class="sb-btn sb-blue" data-say="Ahora te ayudo.">Ahora te ayudo</button>
+      <button class="sb-btn sb-blue" data-say="Sí, ahora mismo.">Sí, ahora mismo</button>
+      <button class="sb-btn sb-blue" data-say="Esperate que termino con este alumno.">Esperate un momento</button>
+      <button class="sb-btn sb-blue" data-say="Buenísima pregunta.">Buenísima pregunta</button>
+      <button class="sb-btn sb-blue" data-say="Sí, podés.">Sí, podés</button>
+      <button class="sb-btn sb-blue" data-say="No, mejor hacelo así.">No, mejor así</button>
+    </div>
+  </div>
+
+  <!-- Ánimo -->
+  <div class="sb-group">
+    <div class="sb-group-label sb-green">✨ Ánimo</div>
+    <div class="sb-grid">
+      <button class="sb-btn sb-green" data-say="¡Quedó re bien!">¡Quedó re bien!</button>
+      <button class="sb-btn sb-green" data-say="¡Muy buen trabajo!">¡Muy buen trabajo!</button>
+      <button class="sb-btn sb-green" data-say="¡Eso! Seguí así.">¡Eso! Seguí así</button>
+      <button class="sb-btn sb-green" data-say="¡Qué prolijo quedó!">¡Qué prolijo!</button>
+      <button class="sb-btn sb-green" data-say="¡Me encantó cómo te quedó!">¡Me encantó!</button>
+      <button class="sb-btn sb-green" data-say="¡Genial, lo estás haciendo bárbaro!">¡Lo estás haciendo bárbaro!</button>
+      <button class="sb-btn sb-green" data-say="¡Qué creativa, me re gustó esa idea!">¡Qué creativa!</button>
+      <button class="sb-btn sb-green" data-say="¡Dale, dale, vas muy bien!">¡Dale, dale!</button>
+      <button class="sb-btn sb-green" data-say="No te preocupes, se puede arreglar.">No te preocupes</button>
+      <button class="sb-btn sb-green" data-say="¡Mirá qué lindo quedó!">¡Mirá qué lindo!</button>
+    </div>
+  </div>
+
+  <!-- Instrucciones -->
+  <div class="sb-group">
+    <div class="sb-group-label sb-purple">📋 Instrucciones</div>
+    <div class="sb-grid">
+      <button class="sb-btn sb-purple" data-say="Acordate de poner tu nombre en la base de la pieza.">Poné tu nombre</button>
+      <button class="sb-btn sb-purple" data-say="No te olvides de cubrir la arcilla que sobra con la bolsa.">Cubrí la arcilla</button>
+      <button class="sb-btn sb-purple" data-say="Mojate los dedos para suavizar los bordes.">Mojate los dedos</button>
+      <button class="sb-btn sb-purple" data-say="Rayá bien las dos partes antes de pegar con barbotina.">Rayá antes de pegar</button>
+      <button class="sb-btn sb-purple" data-say="Cuidado con las paredes, no las hagas muy finitas.">No muy finitas</button>
+      <button class="sb-btn sb-purple" data-say="Dejá secar despacio, no la pongas al sol.">Dejá secar despacio</button>
+      <button class="sb-btn sb-purple" data-say="Medí bien las planchas antes de cortar para no desperdiciar arcilla.">Medí antes de cortar</button>
+      <button class="sb-btn sb-purple" data-say="Aprovechá toda la arcilla que amasaste, no desperdicies.">Aprovechá la arcilla</button>
+      <button class="sb-btn sb-purple" data-say="Golpeá la arcilla contra la mesa para sacarle el aire.">Sacale el aire</button>
+      <button class="sb-btn sb-purple" data-say="Trabajá con las manos mojadas para que no se pegue.">Manos mojadas</button>
+      <button class="sb-btn sb-purple" data-say="Hacelo más parejo, mirá que ese lado quedó más grueso.">Hacelo más parejo</button>
+    </div>
+  </div>
+
+  <!-- Horno y piezas -->
+  <div class="sb-group">
+    <div class="sb-group-label sb-teal">🔥 Horno y piezas</div>
+    <div class="sb-grid">
+      <button class="sb-btn sb-teal" data-say="Hay un horno cargado, capaz están ahí. Ahora las busco.">Ahora busco tus piezas</button>
+      <button class="sb-btn sb-teal" data-say="Las piezas todavía no salieron del horno, tienen que esperar un poco más.">Todavía no salieron</button>
+      <button class="sb-btn sb-teal" data-say="¡Tus piezas salieron del horno, quedaron divinas!">¡Salieron del horno!</button>
+      <button class="sb-btn sb-teal" data-say="Esta pieza no puede ir al horno todavía, le falta secar más.">Falta secar más</button>
+      <button class="sb-btn sb-teal" data-say="Cargamos el horno la semana que viene.">Horno la semana que viene</button>
+      <button class="sb-btn sb-teal" data-say="Esta pieza tiene que estar bien seca antes de ir al horno, si no explota.">Tiene que secar bien</button>
+    </div>
+  </div>
+
+</div>
+
+<script>
+/* ══════════════════════════════════════════════════════════
+   SHARED TTS ENGINE
+   ══════════════════════════════════════════════════════════ */
+const synth = window.speechSynthesis;
+let chosenVoice = null;
+let currentUtter = null;
+
+function pickVoice() {
+  const voices = synth.getVoices();
+  for (const lang of ['es-AR', 'es-MX', 'es-ES']) {
+    const v = voices.find(v => v.lang === lang);
+    if (v) { chosenVoice = v; return; }
+  }
+  const any = voices.find(v => v.lang.startsWith('es'));
+  if (any) chosenVoice = any;
+}
+if (synth.onvoiceschanged !== undefined) synth.onvoiceschanged = pickVoice;
+pickVoice();
+
+function speak(text, rate = 0.9, pitch = 1.0) {
+  return new Promise(resolve => {
+    synth.cancel();
+    const utter = new SpeechSynthesisUtterance(text);
+    utter.lang  = 'es-AR';
+    utter.rate  = rate;
+    utter.pitch = pitch;
+    if (chosenVoice) utter.voice = chosenVoice;
+    utter.onend   = () => { currentUtter = null; resolve(); };
+    utter.onerror = () => { currentUtter = null; resolve(); };
+    currentUtter = utter;
+    synth.speak(utter);
+  });
+}
+
+/* ══════════════════════════════════════════════════════════
+   STUDENT Q&A
+   ══════════════════════════════════════════════════════════ */
+(() => {
+  const State = { IDLE:'idle', LISTENING:'listening', THINKING:'thinking', SPEAKING:'speaking' };
+  let currentState = State.IDLE;
+  let recognition   = null;
+  let pendingText   = '';
+
+  const micBtn       = document.getElementById('micBtn');
+  const statusBar    = document.getElementById('statusBar');
+  const statusText   = document.getElementById('statusText');
+  const bubbleArea   = document.getElementById('bubbleArea');
+  const placeholder  = document.getElementById('placeholder');
+  const noSpeechWarn = document.getElementById('noSpeechWarn');
+  const quickChips   = document.querySelectorAll('#quickGrid .chip');
+
+  function setStatus(state, label) {
+    currentState = state;
+    statusBar.className = 'status-bar' + (state !== State.IDLE ? ' ' + state : '');
+    statusText.textContent = label;
+  }
+
+  function addBubble(text, type) {
+    placeholder && placeholder.remove();
+    const div = document.createElement('div');
+    div.className = `bubble ${type}`;
+    div.textContent = text;
+    bubbleArea.appendChild(div);
+    div.scrollIntoView({ behavior: 'smooth', block: 'end' });
+  }
+
+  function lockControls(val) {
+    micBtn.disabled = val;
+    quickChips.forEach(b => b.disabled = val);
+  }
+
+  async function handleQuestion(question) {
+    if (!question.trim()) return;
+    lockControls(true);
+    noSpeechWarn.classList.remove('visible');
+    addBubble(question, 'user');
+
+    setStatus(State.THINKING, 'Pensando…');
+    let reply;
+    try {
+      const res  = await fetch('/api/chat', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ message: question }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || 'Error del servidor');
+      reply = data.reply;
+    } catch (err) {
+      addBubble(err.message || 'No pude conectarme. Intentá de nuevo.', 'error');
+      setStatus(State.IDLE, 'Listo para escucharte');
+      lockControls(false);
+      return;
+    }
+
+    addBubble(reply, 'assistant');
+    setStatus(State.SPEAKING, 'Hablando…');
+    await speak(reply);
+    setStatus(State.IDLE, 'Listo para escucharte');
+    lockControls(false);
+  }
+
+  /* Speech Recognition */
+  const SpeechRec = window.SpeechRecognition || window.webkitSpeechRecognition;
+  if (!SpeechRec) {
+    micBtn.disabled = true;
+    addBubble('⚠️ Tu navegador no soporta reconocimiento de voz. Usá Chrome o Edge.', 'error');
+  } else {
+    recognition = new SpeechRec();
+    recognition.lang = 'es-AR';
+    recognition.continuous = false;
+    recognition.interimResults = false;
+
+    recognition.onresult = e => { pendingText = e.results[0][0].transcript; };
+    recognition.onerror  = e => { if (e.error === 'no-speech') noSpeechWarn.classList.add('visible'); };
+    recognition.onend    = () => {
+      if (currentState !== State.LISTENING) return;
+      setStatus(State.IDLE, 'Listo para escucharte');
+      if (pendingText) {
+        const q = pendingText; pendingText = '';
+        handleQuestion(q);
+      } else {
+        lockControls(false);
+      }
+    };
+  }
+
+  function startListening() {
+    if (currentState !== State.IDLE || !recognition) return;
+    synth.cancel();
+    pendingText = '';
+    noSpeechWarn.classList.remove('visible');
+    setStatus(State.LISTENING, 'Escuchando…');
+    micBtn.classList.add('active');
+    lockControls(true);
+    micBtn.disabled = false;
+    try { recognition.start(); } catch(e) {}
+  }
+
+  function stopListening() {
+    if (currentState !== State.LISTENING || !recognition) return;
+    micBtn.classList.remove('active');
+    try { recognition.stop(); } catch(e) {}
+  }
+
+  micBtn.addEventListener('mousedown',  e => { e.preventDefault(); startListening(); });
+  micBtn.addEventListener('mouseup',    stopListening);
+  micBtn.addEventListener('mouseleave', stopListening);
+  micBtn.addEventListener('touchstart', e => { e.preventDefault(); startListening(); }, { passive: false });
+  micBtn.addEventListener('touchend',   e => { e.preventDefault(); stopListening(); },  { passive: false });
+  micBtn.addEventListener('keydown', e => { if ((e.key===' '||e.key==='Enter')&&!e.repeat){e.preventDefault();startListening();} });
+  micBtn.addEventListener('keyup',   e => { if (e.key===' '||e.key==='Enter') stopListening(); });
+
+  quickChips.forEach(btn => {
+    btn.addEventListener('click', () => {
+      if (currentState !== State.IDLE) return;
+      handleQuestion(btn.dataset.q);
+    });
+  });
+})();
+
+/* ══════════════════════════════════════════════════════════
+   TEACHER SOUNDBOARD
+   ══════════════════════════════════════════════════════════ */
+(() => {
+  let activeBtn = null;
+
+  document.querySelectorAll('.sb-btn').forEach(btn => {
+    btn.addEventListener('click', async () => {
+      const phrase = btn.dataset.say;
+      if (!phrase) return;
+
+      // Visual feedback
+      if (activeBtn) activeBtn.classList.remove('playing');
+      activeBtn = btn;
+      btn.classList.add('playing');
+
+      await speak(phrase, 0.92, 1.0);
+
+      btn.classList.remove('playing');
+      if (activeBtn === btn) activeBtn = null;
+    });
+  });
+})();
+</script>
+</body>
+</html>
