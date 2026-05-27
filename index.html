@@ -207,6 +207,43 @@
     .sb-teal    { background:var(--teal-pale);   color:var(--teal);  }
     .sb-clay    { background:var(--clay-pale);   color:var(--earth); }
     .sb-orange  { background:#fff3e0;            color:#e65100;      }
+
+    /* ── Voice picker ── */
+    .voice-picker {
+      border: 1px solid var(--clay-mid);
+      border-radius: 10px;
+      padding: 0;
+      overflow: hidden;
+    }
+    .voice-picker summary {
+      padding: 9px 14px;
+      font-size: .82rem;
+      font-weight: 600;
+      color: var(--smoke);
+      cursor: pointer;
+      user-select: none;
+      list-style: none;
+    }
+    .voice-picker summary::-webkit-details-marker { display: none; }
+    .voice-picker[open] summary { border-bottom: 1px solid var(--clay-pale); }
+    .voice-picker-inner {
+      display: flex;
+      gap: 8px;
+      align-items: center;
+      padding: 10px 14px;
+      flex-wrap: wrap;
+    }
+    .voice-picker-inner select {
+      flex: 1;
+      min-width: 0;
+      border: 1.5px solid var(--clay-mid);
+      border-radius: 8px;
+      padding: 6px 10px;
+      font-size: .82rem;
+      background: var(--cream);
+      color: var(--ink);
+      font-family: inherit;
+    }
   </style>
 </head>
 <body>
@@ -258,6 +295,16 @@
       <button class="chip" data-q="¿Me pasás la tabla?">¿Me pasás la tabla?</button>
     </div>
   </div>
+</div>
+
+  <!-- Voice picker -->
+  <details class="voice-picker">
+    <summary>🔊 Configurar voz</summary>
+    <div class="voice-picker-inner">
+      <select id="voiceSelect"><option>Cargando voces…</option></select>
+      <button id="voiceTestBtn" class="chip">Probar</button>
+    </div>
+  </details>
 </div>
 
 <!-- ═══ TEACHER SOUNDBOARD CARD ═══ -->
@@ -369,19 +416,78 @@ const synth = window.speechSynthesis;
 let chosenVoice = null;
 let currentUtter = null;
 
-function pickVoice() {
-  const voices = synth.getVoices();
-  for (const lang of ['es-AR', 'es-MX', 'es-ES']) {
-    const v = voices.find(v => v.lang === lang);
-    if (v) { chosenVoice = v; return; }
-  }
-  const any = voices.find(v => v.lang.startsWith('es'));
-  if (any) chosenVoice = any;
+// Known female Spanish voice names (iOS, Android, Windows)
+const FEMALE_HINTS = ['paulina','monica','mónica','marisol','helena','laura',
+                      'camila','sofia','sofía','valeria','female','mujer',
+                      'google español de estados','milena','lupe'];
+const MALE_HINTS   = ['diego','jorge','carlos','juan','pablo','miguel',
+                      'male','hombre','google español\b'];
+
+function isFemale(v) {
+  const n = v.name.toLowerCase();
+  return FEMALE_HINTS.some(h => n.includes(h)) && !MALE_HINTS.some(h => n.includes(h));
 }
+function isMale(v) {
+  const n = v.name.toLowerCase();
+  return MALE_HINTS.some(h => n.includes(h));
+}
+
+function pickVoice() {
+  const voices  = synth.getVoices();
+  const esVoices = voices.filter(v => v.lang.startsWith('es'));
+  if (!esVoices.length) return;
+
+  // 1. Female es-AR
+  let pick = esVoices.find(v => v.lang === 'es-AR' && isFemale(v));
+  // 2. Any female Spanish voice (prefer es-MX "Paulina", es-ES "Monica")
+  if (!pick) pick = esVoices.find(v => isFemale(v));
+  // 3. Non-male es-AR
+  if (!pick) pick = esVoices.find(v => v.lang === 'es-AR' && !isMale(v));
+  // 4. es-MX (Paulina on iOS — female)
+  if (!pick) pick = esVoices.find(v => v.lang === 'es-MX');
+  // 5. es-ES (Monica on iOS — female)
+  if (!pick) pick = esVoices.find(v => v.lang === 'es-ES');
+  // 6. Any non-male Spanish
+  if (!pick) pick = esVoices.find(v => !isMale(v));
+  // 7. Anything Spanish
+  if (!pick) pick = esVoices[0];
+
+  chosenVoice = pick;
+  populateVoicePicker(esVoices);
+}
+
+function populateVoicePicker(esVoices) {
+  const sel = document.getElementById('voiceSelect');
+  if (!sel) return;
+  sel.innerHTML = '';
+  esVoices.forEach(v => {
+    const opt = document.createElement('option');
+    opt.value = v.name;
+    opt.textContent = `${v.name} (${v.lang})`;
+    if (chosenVoice && v.name === chosenVoice.name) opt.selected = true;
+    sel.appendChild(opt);
+  });
+}
+
 if (synth.onvoiceschanged !== undefined) synth.onvoiceschanged = pickVoice;
 pickVoice();
 
-function speak(text, rate = 0.9, pitch = 1.0) {
+// Voice picker interaction
+document.addEventListener('DOMContentLoaded', () => {
+  const sel     = document.getElementById('voiceSelect');
+  const testBtn = document.getElementById('voiceTestBtn');
+  if (sel) {
+    sel.addEventListener('change', () => {
+      const voices = synth.getVoices();
+      chosenVoice  = voices.find(v => v.name === sel.value) || chosenVoice;
+    });
+  }
+  if (testBtn) {
+    testBtn.addEventListener('click', () => speak('Hola, soy la asistente de cerámica.', 0.9, 1.15));
+  }
+});
+
+function speak(text, rate = 0.9, pitch = 1.15) {
   return new Promise(resolve => {
     synth.cancel();
     const utter = new SpeechSynthesisUtterance(text);
