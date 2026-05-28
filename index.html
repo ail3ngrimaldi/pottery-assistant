@@ -207,6 +207,47 @@
     .sb-teal    { background:var(--teal-pale);   color:var(--teal);  }
     .sb-clay    { background:var(--clay-pale);   color:var(--earth); }
     .sb-orange  { background:#fff3e0;            color:#e65100;      }
+    .sb-grey    { background:#eceff1;            color:#455a64;      }
+
+    /* ── Texto a voz libre ── */
+    .tts-box { display:flex; flex-direction:column; gap:8px; }
+    .tts-input {
+      width:100%; min-height:72px;
+      border:1.5px solid var(--clay-mid);
+      border-radius:10px;
+      padding:10px 14px;
+      font-size:.9rem;
+      font-family:inherit;
+      resize:vertical;
+      background:var(--cream);
+      color:var(--ink);
+    }
+    .tts-input:focus { outline:none; border-color:var(--clay); }
+    .tts-speak-btn {
+      align-self:flex-end;
+      background:var(--clay);
+      color:#fff;
+      border:none;
+      border-radius:50px;
+      padding:9px 22px;
+      font-size:.88rem;
+      font-weight:600;
+      cursor:pointer;
+      font-family:inherit;
+      transition:background .15s, transform .1s;
+    }
+    .tts-speak-btn:hover  { background:var(--clay-dark); }
+    .tts-speak-btn:active { transform:scale(.97); }
+
+    /* ── Anteriores collapsible ── */
+    .sb-anteriores { border:1px solid #cfd8dc; border-radius:10px; padding:10px 12px; }
+    .sb-anteriores > summary {
+      cursor:pointer; user-select:none; list-style:none;
+      display:flex; align-items:center; gap:6px;
+    }
+    .sb-anteriores > summary::-webkit-details-marker { display:none; }
+    .sb-anteriores > summary::after { content:'▸'; font-size:.8rem; margin-left:auto; }
+    .sb-anteriores[open] > summary::after { content:'▾'; }
 
     /* ── Voice picker ── */
     .voice-picker {
@@ -313,113 +354,140 @@
 <div class="card soundboard">
   <div class="card-title">🔊 Frases rápidas</div>
 
-  <!-- Fin de clase -->
+  <!-- Texto a voz libre -->
   <div class="sb-group">
-    <div class="sb-group-label sb-orange">🕐 Fin de clase</div>
-    <div class="sb-grid">
-      <button class="sb-btn sb-orange" data-say="Bueno, vamos terminando las piezas que ya termina la clase.">Vamos terminando</button>
-      <button class="sb-btn sb-orange" data-say="Cinco minutos más y guardamos todo.">5 minutos más</button>
-      <button class="sb-btn sb-orange" data-say="¡Se acabó la clase! Pongan las piezas en el estante con cuidado.">¡Se acabó la clase!</button>
-      <button class="sb-btn sb-orange" data-say="Empezamos en dos minutos, vayan acomodándose.">Empezamos en 2 min</button>
-      <button class="sb-btn sb-orange" data-say="Mañana seguimos con esto, guardá tu pieza en el estante.">Mañana seguimos</button>
-      <button class="sb-btn sb-orange" data-say="Eso es muy largo, tendremos que hacerlo en dos clases.">Dos clases</button>
-      <button class="sb-btn sb-orange" data-say="Guardá la arcilla sobrante en la bolsa bien cerrada.">Guardá la arcilla</button>
-      <button class="sb-btn sb-orange" data-say="Limpiá la mesa antes de irte, por favor.">Limpiá la mesa</button>
-      <button class="sb-btn sb-orange" data-say="Pongan las piezas en el estante con cuidado, no las apilen.">Al estante con cuidado</button>
+    <div class="sb-group-label" style="color:var(--clay-dark)">✏️ Texto a voz</div>
+    <div class="tts-box">
+      <textarea id="ttsInput" class="tts-input" placeholder="Escribí lo que querés decir…" rows="3"></textarea>
+      <button id="ttsSpeakBtn" class="tts-speak-btn">🔊 Hablar</button>
     </div>
   </div>
 
-  <!-- Herramientas -->
+  <!-- INTRO -->
   <div class="sb-group">
-    <div class="sb-group-label sb-clay">🧰 Herramientas y materiales</div>
+    <div class="sb-group-label sb-green">👋 Intro</div>
     <div class="sb-grid">
-      <button class="sb-btn sb-clay" data-say="Ya te lo traigo.">Ya te lo traigo</button>
-      <button class="sb-btn sb-clay" data-say="Ya te la traigo.">Ya te la traigo</button>
-      <button class="sb-btn sb-clay" data-say="Pasá la tarjeta.">Pasá tarjeta</button>
-      <button class="sb-btn sb-clay" data-say="Pasá la esponja.">Pasá esponja</button>
-      <button class="sb-btn sb-clay" data-say="Te paso una tabla más grande.">Tabla más grande</button>
-      <button class="sb-btn sb-clay" data-say="Ya te lo paso, dame un segundo.">Ya te lo paso</button>
-      <button class="sb-btn sb-clay" data-say="Ahora lo busco.">Ahora lo busco</button>
-      <button class="sb-btn sb-clay" data-say="Dame un segundo que te lo busco.">Dame un segundo</button>
-      <button class="sb-btn sb-clay" data-say="Esperame un segundito.">Esperame un segundo</button>
-      <button class="sb-btn sb-clay" data-say="No lo encuentro, ¿lo viste en algún lado?">¿Lo viste en algún lado?</button>
-      <button class="sb-btn sb-clay" data-say="Eso no está en el taller, lo traemos la próxima.">No está en el taller</button>
+      <button class="sb-btn sb-green" data-say="Hola, ¿cómo estás? Estoy con poca voz así que voy a hablar poco. Hice este programa con una inteligencia artificial para poder hablar menos.">Bienvenida</button>
+      <button class="sb-btn sb-green" data-say="¿Te acordás qué estabas haciendo?">Buscar pieza de alumna</button>
     </div>
   </div>
 
-  <!-- Respuestas rápidas -->
+  <!-- PROCESO -->
   <div class="sb-group">
-    <div class="sb-group-label sb-blue">💬 Respuestas rápidas</div>
+    <div class="sb-group-label sb-teal">🔄 Proceso</div>
     <div class="sb-grid">
-      <button class="sb-btn sb-blue" data-say="Ya voy.">Ya voy</button>
-      <button class="sb-btn sb-blue" data-say="Un momento.">Un momento</button>
-      <button class="sb-btn sb-blue" data-say="Ahora te ayudo.">Ahora te ayudo</button>
-      <button class="sb-btn sb-blue" data-say="Sí, ahora mismo.">Sí, ahora mismo</button>
-      <button class="sb-btn sb-blue" data-say="Esperate que termino con este alumno.">Esperate un momento</button>
-      <button class="sb-btn sb-blue" data-say="Buenísima pregunta.">Buenísima pregunta</button>
-      <button class="sb-btn sb-blue" data-say="Sí, podés.">Sí, podés</button>
-      <button class="sb-btn sb-blue" data-say="No, mejor hacelo así.">No, mejor así</button>
+      <button class="sb-btn sb-teal" data-say="Esto está para emprolijar. Pasale esponjita con no mucha agua y mucho cuidado.">Emprolijar</button>
+      <button class="sb-btn sb-teal" data-say="Si te gusta como está ya lo dejamos en el estante para el horno. Es el gris de allá, yo lo pongo si querés.">No emprolijar → horno</button>
+      <button class="sb-btn sb-teal" data-say="Cuando la pieza se seca podemos emprolijarla con esponja. La pasamos por donde vemos grietas o líneas, pedazos de arcilla que nos parezca que sobren. Pero lo hacemos con cuidado, sin presionar partes frágiles o poner peso sobre partes que se puedan romper.">Cuándo y cómo emprolijar</button>
+      <button class="sb-btn sb-teal" data-say="Eso ya está para esmaltar o pintar más con pigmentos. ¿Qué querés hacer?">Esmaltado</button>
+      <button class="sb-btn sb-teal" data-say="Una vez que la emprolijaste, si querés podés pintarla ahora con engobes, que son estos colores de la segunda fila. Si pintamos ahora se puede ir corrigiendo. Después con pigmentos no.">Pintar antes del horno</button>
+      <button class="sb-btn sb-teal" data-say="Ahora se puede pintar con pigmentos o engobe bastante más diluido, porque sino después se puede saltar el esmalte. Sino se puede esmaltar directamente.">Pintar después del horno</button>
+      <button class="sb-btn sb-teal" data-say="Si no querés hacerle ningún dibujo o patrón podemos esmaltar directamente. Es sumergir en estos baldes, hay mucha variedad de colores.">Esmalte directo</button>
     </div>
   </div>
 
-  <!-- Ánimo -->
+  <!-- PIEZA NUEVA -->
   <div class="sb-group">
-    <div class="sb-group-label sb-green">✨ Ánimo</div>
+    <div class="sb-group-label sb-clay">🆕 Pieza nueva</div>
     <div class="sb-grid">
-      <button class="sb-btn sb-green" data-say="¡Quedó re bien!">¡Quedó re bien!</button>
-      <button class="sb-btn sb-green" data-say="¡Muy buen trabajo!">¡Muy buen trabajo!</button>
-      <button class="sb-btn sb-green" data-say="¡Eso! Seguí así.">¡Eso! Seguí así</button>
-      <button class="sb-btn sb-green" data-say="¡Qué prolijo quedó!">¡Qué prolijo!</button>
-      <button class="sb-btn sb-green" data-say="¡Me encantó cómo te quedó!">¡Me encantó!</button>
-      <button class="sb-btn sb-green" data-say="¡Genial, lo estás haciendo bárbaro!">¡Lo estás haciendo bárbaro!</button>
-      <button class="sb-btn sb-green" data-say="¡Qué creativa, me re gustó esa idea!">¡Qué creativa!</button>
-      <button class="sb-btn sb-green" data-say="¡Dale, dale, vas muy bien!">¡Dale, dale!</button>
-      <button class="sb-btn sb-green" data-say="No te preocupes, se puede arreglar.">No te preocupes</button>
-      <button class="sb-btn sb-green" data-say="¡Mirá qué lindo quedó!">¡Mirá qué lindo!</button>
+      <button class="sb-btn sb-clay" data-say="¿Qué querés hacer hoy? Podemos hacer algo redondo con pellizco, algo más cuadrado o plano con planchas, o construir las paredes con chorizos.">¿Qué hacemos hoy?</button>
+      <button class="sb-btn sb-clay" data-say="Para formas redondeadas hacemos pellizco: tomás un cubo de arcilla, lo golpeás contra la mesa para darle forma pareja, redondeás las puntas con la mano, metés el pulgar en el centro y pellizicás los bordes hacia afuera. Si querés que quede más alta, después le agregamos chorizos arriba.">Técnica pellizco</button>
+      <button class="sb-btn sb-clay" data-say="Para formas cuadradas o rectangulares trabajamos con planchas. Estirás la arcilla con el rodillo, medís bien cada cara antes de cortar, y las pegás con barbotina rayando las superficies. Importante medir todo antes de empezar para no desperdiciar arcilla.">Técnica plancha</button>
+      <button class="sb-btn sb-clay" data-say="Con la técnica de chorizos hacés rollitos de arcilla del mismo grosor, los vas apilando y pegando con barbotina. Después los unís con los dedos por adentro y por afuera para que queden bien fuertes. Es buena para hacer paredes altas.">Técnica chorizos</button>
+      <button class="sb-btn sb-clay" data-say="Para hacer un plato estirás la arcilla con el rodillo hasta dejarla pareja, y después levantás los bordes con la tarjeta o agregás choricitos alrededor.">Técnica plato</button>
+      <button class="sb-btn sb-clay" data-say="Eso es muy largo, tendremos que hacerlo en dos clases.">Dos clases</button>
+      <button class="sb-btn sb-clay" data-say="Acordate de poner tu nombre en la base de la pieza antes de que seque, con un palillo.">Poné tu nombre</button>
     </div>
   </div>
 
-  <!-- Instrucciones -->
+  <!-- CONVERSACIÓN -->
   <div class="sb-group">
-    <div class="sb-group-label sb-purple">📋 Instrucciones</div>
+    <div class="sb-group-label sb-purple">💬 Conversación</div>
     <div class="sb-grid">
-      <button class="sb-btn sb-purple" data-say="Acordate de poner tu nombre en la base de la pieza.">Poné tu nombre</button>
-      <button class="sb-btn sb-purple" data-say="No te olvides de cubrir la arcilla que sobra con la bolsa.">Cubrí la arcilla</button>
-      <button class="sb-btn sb-purple" data-say="Mojate los dedos para suavizar los bordes.">Mojate los dedos</button>
-      <button class="sb-btn sb-purple" data-say="Rayá bien las dos partes antes de pegar con barbotina.">Rayá antes de pegar</button>
-      <button class="sb-btn sb-purple" data-say="Cuidado con las paredes, no las hagas muy finitas.">No muy finitas</button>
-      <button class="sb-btn sb-purple" data-say="Dejá secar despacio, no la pongas al sol.">Dejá secar despacio</button>
-      <button class="sb-btn sb-purple" data-say="Medí bien las planchas antes de cortar para no desperdiciar arcilla.">Medí antes de cortar</button>
-      <button class="sb-btn sb-purple" data-say="Aprovechá toda la arcilla que amasaste, no desperdicies.">Aprovechá la arcilla</button>
-      <button class="sb-btn sb-purple" data-say="Golpeá la arcilla contra la mesa para sacarle el aire.">Sacale el aire</button>
-      <button class="sb-btn sb-purple" data-say="Trabajá con las manos mojadas para que no se pegue.">Manos mojadas</button>
-      <button class="sb-btn sb-purple" data-say="Hacelo más parejo, mirá que ese lado quedó más grueso.">Hacelo más parejo</button>
-      <button class="sb-btn sb-purple" data-say="Las formas están en la caja.">Las formas están en la caja</button>
-      <button class="sb-btn sb-purple" data-say="Para hacer un círculo podés usar las formas o el compás.">Círculo: formas o compás</button>
-      <button class="sb-btn sb-purple" data-say="¿Le pusiste barbotina?">¿Le pusiste barbotina?</button>
-      <button class="sb-btn sb-purple" data-say="Cuidado al emprolijar, se puede romper.">Cuidado al emprolijar</button>
-      <button class="sb-btn sb-purple" data-say="Agregá choricitos.">Agregá choricitos</button>
-      <button class="sb-btn sb-purple" data-say="Falta sacarle más arcilla.">Falta sacarle arcilla</button>
-      <button class="sb-btn sb-purple" data-say="Cuidado que está muy ancho en algunos lugares y muy finito en otros.">Muy ancho / muy finito</button>
+      <button class="sb-btn sb-purple" data-say="¿Qué hicieron el fin de semana?">¿Qué hicieron el finde?</button>
+      <button class="sb-btn sb-purple" data-say="¿Por qué faltaste la clase pasada?">¿Por qué faltaste?</button>
+      <button class="sb-btn sb-purple" data-say="La clase pasada estuvimos hablando sobre si sus papás estaban separados. ¿Cuántas tienen a sus papás separados?">¿Papás separados?</button>
+      <button class="sb-btn sb-purple" data-say="¿Cómo les fue en la semana, todo bien?">¿Cómo les fue?</button>
+      <button class="sb-btn sb-purple" data-say="¿Vieron algo bueno en Netflix o en el celu últimamente?">¿Vieron algo bueno?</button>
+      <button class="sb-btn sb-purple" data-say="¿Tienen muchos parciales esta semana?">¿Muchos parciales?</button>
+      <button class="sb-btn sb-purple" data-say="¿Cuándo tienen vacaciones?">¿Cuándo vacaciones?</button>
+      <button class="sb-btn sb-purple" data-say="¿Qué música están escuchando últimamente?">¿Qué música escuchan?</button>
+      <button class="sb-btn sb-purple" data-say="¿Salieron el finde o se quedaron en casa?">¿Salieron el finde?</button>
+      <button class="sb-btn sb-purple" data-say="¿Están de novio, de novia?">¿Están de novio/a?</button>
+      <button class="sb-btn sb-purple" data-say="¿Qué planes tienen para las vacaciones?">¿Planes para vacaciones?</button>
+      <button class="sb-btn sb-purple" data-say="¿Alguien se fue de viaje últimamente?">¿Alguien de viaje?</button>
     </div>
   </div>
 
-  <!-- Horno y piezas -->
-  <div class="sb-group">
-    <div class="sb-group-label sb-teal">🔥 Horno y piezas</div>
-    <div class="sb-grid">
-      <button class="sb-btn sb-teal" data-say="Hay un horno cargado, capaz están ahí. Ahora las busco.">Ahora busco tus piezas</button>
-      <button class="sb-btn sb-teal" data-say="Las piezas todavía no salieron del horno, tienen que esperar un poco más.">Todavía no salieron</button>
-      <button class="sb-btn sb-teal" data-say="¡Tus piezas salieron del horno, quedaron divinas!">¡Salieron del horno!</button>
-      <button class="sb-btn sb-teal" data-say="Esta pieza no puede ir al horno todavía, le falta secar más.">Falta secar más</button>
-      <button class="sb-btn sb-teal" data-say="Cargamos el horno la semana que viene.">Horno la semana que viene</button>
-      <button class="sb-btn sb-teal" data-say="Esta pieza tiene que estar bien seca antes de ir al horno, si no explota.">Tiene que secar bien</button>
-      <button class="sb-btn sb-teal" data-say="Hay que esmaltar las piezas.">Hay que esmaltar</button>
-      <button class="sb-btn sb-teal" data-say="¿Querés ir a ver qué esmaltes hay?">¿Ves qué esmaltes hay?</button>
-      <button class="sb-btn sb-teal" data-say="Esto está para pintar.">Esto está para pintar</button>
-      <button class="sb-btn sb-teal" data-say="¿Qué colores querés?">¿Qué colores querés?</button>
+  <!-- ANTERIORES -->
+  <details class="sb-group sb-anteriores">
+    <summary class="sb-group-label sb-grey">📦 Anteriores</summary>
+    <div class="sb-grid" style="margin-top:8px">
+      <button class="sb-btn sb-grey" data-say="Bueno, vamos terminando las piezas que ya termina la clase.">Vamos terminando</button>
+      <button class="sb-btn sb-grey" data-say="Cinco minutos más y guardamos todo.">5 minutos más</button>
+      <button class="sb-btn sb-grey" data-say="¡Se acabó la clase! Pongan las piezas en el estante con cuidado.">¡Se acabó la clase!</button>
+      <button class="sb-btn sb-grey" data-say="Empezamos en dos minutos, vayan acomodándose.">Empezamos en 2 min</button>
+      <button class="sb-btn sb-grey" data-say="Mañana seguimos con esto, guardá tu pieza en el estante.">Mañana seguimos</button>
+      <button class="sb-btn sb-grey" data-say="Guardá la arcilla sobrante en la bolsa bien cerrada.">Guardá la arcilla</button>
+      <button class="sb-btn sb-grey" data-say="Limpiá la mesa antes de irte, por favor.">Limpiá la mesa</button>
+      <button class="sb-btn sb-grey" data-say="Pongan las piezas en el estante con cuidado, no las apilen.">Al estante con cuidado</button>
+      <button class="sb-btn sb-grey" data-say="Ya te lo traigo.">Ya te lo traigo</button>
+      <button class="sb-btn sb-grey" data-say="Ya te la traigo.">Ya te la traigo</button>
+      <button class="sb-btn sb-grey" data-say="Pasá la tarjeta.">Pasá tarjeta</button>
+      <button class="sb-btn sb-grey" data-say="Pasá la esponja.">Pasá esponja</button>
+      <button class="sb-btn sb-grey" data-say="Te paso una tabla más grande.">Tabla más grande</button>
+      <button class="sb-btn sb-grey" data-say="Ya te lo paso, dame un segundo.">Ya te lo paso</button>
+      <button class="sb-btn sb-grey" data-say="Ahora lo busco.">Ahora lo busco</button>
+      <button class="sb-btn sb-grey" data-say="Dame un segundo que te lo busco.">Dame un segundo</button>
+      <button class="sb-btn sb-grey" data-say="Esperame un segundito.">Esperame un segundo</button>
+      <button class="sb-btn sb-grey" data-say="No lo encuentro, ¿lo viste en algún lado?">¿Lo viste en algún lado?</button>
+      <button class="sb-btn sb-grey" data-say="Ya voy.">Ya voy</button>
+      <button class="sb-btn sb-grey" data-say="Un momento.">Un momento</button>
+      <button class="sb-btn sb-grey" data-say="Ahora te ayudo.">Ahora te ayudo</button>
+      <button class="sb-btn sb-grey" data-say="Sí, ahora mismo.">Sí, ahora mismo</button>
+      <button class="sb-btn sb-grey" data-say="Esperate que termino con este alumno.">Esperate un momento</button>
+      <button class="sb-btn sb-grey" data-say="Buenísima pregunta.">Buenísima pregunta</button>
+      <button class="sb-btn sb-grey" data-say="Sí, podés.">Sí, podés</button>
+      <button class="sb-btn sb-grey" data-say="No, mejor hacelo así.">No, mejor así</button>
+      <button class="sb-btn sb-grey" data-say="¡Quedó re bien!">¡Quedó re bien!</button>
+      <button class="sb-btn sb-grey" data-say="¡Muy buen trabajo!">¡Muy buen trabajo!</button>
+      <button class="sb-btn sb-grey" data-say="¡Eso! Seguí así.">¡Eso! Seguí así</button>
+      <button class="sb-btn sb-grey" data-say="¡Qué prolijo quedó!">¡Qué prolijo!</button>
+      <button class="sb-btn sb-grey" data-say="¡Me encantó cómo te quedó!">¡Me encantó!</button>
+      <button class="sb-btn sb-grey" data-say="¡Genial, lo estás haciendo bárbaro!">¡Lo estás haciendo bárbaro!</button>
+      <button class="sb-btn sb-grey" data-say="¡Qué creativa, me re gustó esa idea!">¡Qué creativa!</button>
+      <button class="sb-btn sb-grey" data-say="¡Dale, dale, vas muy bien!">¡Dale, dale!</button>
+      <button class="sb-btn sb-grey" data-say="No te preocupes, se puede arreglar.">No te preocupes</button>
+      <button class="sb-btn sb-grey" data-say="¡Mirá qué lindo quedó!">¡Mirá qué lindo!</button>
+      <button class="sb-btn sb-grey" data-say="No te olvides de cubrir la arcilla que sobra con la bolsa.">Cubrí la arcilla</button>
+      <button class="sb-btn sb-grey" data-say="Mojate los dedos para suavizar los bordes.">Mojate los dedos</button>
+      <button class="sb-btn sb-grey" data-say="Rayá bien las dos partes antes de pegar con barbotina.">Rayá antes de pegar</button>
+      <button class="sb-btn sb-grey" data-say="Cuidado con las paredes, no las hagas muy finitas.">No muy finitas</button>
+      <button class="sb-btn sb-grey" data-say="Dejá secar despacio, no la pongas al sol.">Dejá secar despacio</button>
+      <button class="sb-btn sb-grey" data-say="Medí bien las planchas antes de cortar para no desperdiciar arcilla.">Medí antes de cortar</button>
+      <button class="sb-btn sb-grey" data-say="Aprovechá toda la arcilla que amasaste, no desperdicies.">Aprovechá la arcilla</button>
+      <button class="sb-btn sb-grey" data-say="Golpeá la arcilla contra la mesa para sacarle el aire.">Sacale el aire</button>
+      <button class="sb-btn sb-grey" data-say="Trabajá con las manos mojadas para que no se pegue.">Manos mojadas</button>
+      <button class="sb-btn sb-grey" data-say="Hacelo más parejo, mirá que ese lado quedó más grueso.">Hacelo más parejo</button>
+      <button class="sb-btn sb-grey" data-say="Las formas están en la caja.">Las formas están en la caja</button>
+      <button class="sb-btn sb-grey" data-say="Para hacer un círculo podés usar las formas o el compás.">Círculo: formas o compás</button>
+      <button class="sb-btn sb-grey" data-say="¿Le pusiste barbotina?">¿Le pusiste barbotina?</button>
+      <button class="sb-btn sb-grey" data-say="Cuidado al emprolijar, se puede romper.">Cuidado al emprolijar</button>
+      <button class="sb-btn sb-grey" data-say="Agregá choricitos.">Agregá choricitos</button>
+      <button class="sb-btn sb-grey" data-say="Falta sacarle más arcilla.">Falta sacarle arcilla</button>
+      <button class="sb-btn sb-grey" data-say="Cuidado que está muy ancho en algunos lugares y muy finito en otros.">Muy ancho / muy finito</button>
+      <button class="sb-btn sb-grey" data-say="Hay un horno cargado, capaz están ahí. Ahora las busco.">Ahora busco tus piezas</button>
+      <button class="sb-btn sb-grey" data-say="Las piezas todavía no salieron del horno, tienen que esperar un poco más.">Todavía no salieron</button>
+      <button class="sb-btn sb-grey" data-say="¡Tus piezas salieron del horno, quedaron divinas!">¡Salieron del horno!</button>
+      <button class="sb-btn sb-grey" data-say="Esta pieza no puede ir al horno todavía, le falta secar más.">Falta secar más</button>
+      <button class="sb-btn sb-grey" data-say="Cargamos el horno la semana que viene.">Horno la semana que viene</button>
+      <button class="sb-btn sb-grey" data-say="Esta pieza tiene que estar bien seca antes de ir al horno, si no explota.">Tiene que secar bien</button>
+      <button class="sb-btn sb-grey" data-say="Hay que esmaltar las piezas.">Hay que esmaltar</button>
+      <button class="sb-btn sb-grey" data-say="¿Querés ir a ver qué esmaltes hay?">¿Ves qué esmaltes hay?</button>
+      <button class="sb-btn sb-grey" data-say="Esto está para pintar.">Esto está para pintar</button>
+      <button class="sb-btn sb-grey" data-say="¿Qué colores querés?">¿Qué colores querés?</button>
     </div>
-  </div>
+  </details>
 
 </div>
 
@@ -641,6 +709,30 @@ function speak(text, rate = 0.9, pitch = 1.15) {
       if (currentState !== State.IDLE) return;
       handleQuestion(btn.dataset.q);
     });
+  });
+})();
+
+/* ══════════════════════════════════════════════════════════
+   TEXTO A VOZ LIBRE
+   ══════════════════════════════════════════════════════════ */
+(() => {
+  const input = document.getElementById('ttsInput');
+  const btn   = document.getElementById('ttsSpeakBtn');
+  if (!input || !btn) return;
+
+  async function speakInput() {
+    const text = input.value.trim();
+    if (!text) return;
+    btn.disabled = true;
+    btn.textContent = '🔊 Hablando…';
+    await speak(text, 0.9, 1.15);
+    btn.disabled = false;
+    btn.textContent = '🔊 Hablar';
+  }
+
+  btn.addEventListener('click', speakInput);
+  input.addEventListener('keydown', e => {
+    if (e.key === 'Enter' && (e.ctrlKey || e.metaKey)) { e.preventDefault(); speakInput(); }
   });
 })();
 
